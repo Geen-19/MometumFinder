@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Area, ComposedChart } from 'recharts'
 import api, { formatNumber, formatPercent, getSignalColor, getScoreColor } from '../services/api'
 
@@ -78,6 +78,14 @@ function StockDetail() {
                     <span className={`badge text-base mt-2 ${getSignalColor(data.current?.signal)}`}>
                         {data.current?.signal}
                     </span>
+                    <div className="mt-3">
+                        <Link
+                            to={`/forecast/${symbol}`}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-lg text-sm font-medium hover:from-cyan-500 hover:to-blue-500 transition-all"
+                        >
+                            <span>📈</span> Price Forecast
+                        </Link>
+                    </div>
                 </div>
             </div>
 
