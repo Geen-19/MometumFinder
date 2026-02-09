@@ -7,10 +7,12 @@ from pathlib import Path
 # Base paths
 BASE_DIR = Path(__file__).parent.parent
 DATA_DIR = BASE_DIR / "data"
-DB_PATH = DATA_DIR / "stock_analyzer.db"
+
+# Database
+DB_PATH = Path(os.getenv("DB_PATH", str(DATA_DIR / "stock_analyzer.db")))
 
 # Ensure data directory exists
-DATA_DIR.mkdir(exist_ok=True)
+DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 # Analysis Parameters
 INDICATOR_PERIODS = {
@@ -53,15 +55,15 @@ SIGNAL_THRESHOLDS = {
 }
 
 # Data Fetching
-DATA_FETCH_DAYS = 90  # Fetch 90 days of history
-MIN_DATA_DAYS = 60    # Minimum days required for analysis
+DATA_FETCH_DAYS = int(os.getenv("DATA_FETCH_DAYS", "90"))
+MIN_DATA_DAYS = int(os.getenv("MIN_DATA_DAYS", "60"))
 
 # API Settings
-API_HOST = "0.0.0.0"
-API_PORT = 5000
-API_DEBUG = True
+API_HOST = os.getenv("API_HOST", "0.0.0.0")
+API_PORT = int(os.getenv("API_PORT", "5000"))
+API_DEBUG = os.getenv("API_DEBUG", "True").lower() == "true"
 
 # Scheduler Settings
-MARKET_CLOSE_HOUR = 15
-MARKET_CLOSE_MINUTE = 45
-TIMEZONE = "Asia/Kolkata"
+MARKET_CLOSE_HOUR = int(os.getenv("MARKET_CLOSE_HOUR", "15"))
+MARKET_CLOSE_MINUTE = int(os.getenv("MARKET_CLOSE_MINUTE", "45"))
+TIMEZONE = os.getenv("TIMEZONE", "Asia/Kolkata")
