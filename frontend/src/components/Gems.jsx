@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import api, { formatPrice, formatPercent, getSignalColor } from '../services/api';
+import { apiClient, formatPrice, formatPercent, getSignalColor } from '../services/api';
 
 const Gems = () => {
     const [gems, setGems] = useState([]);
@@ -22,7 +22,7 @@ const Gems = () => {
             if (riskFilter) params.risk = riskFilter;
             if (sectorFilter) params.sector = sectorFilter;
 
-            const response = await api.get('/api/gems', { params });
+            const response = await apiClient.get('/gems', { params });
             setGems(response.data.gems || []);
             setSummary(response.data.summary || {});
 

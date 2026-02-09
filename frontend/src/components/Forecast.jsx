@@ -4,7 +4,7 @@ import {
     AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip,
     ResponsiveContainer, ReferenceLine, ComposedChart
 } from 'recharts';
-import api, { formatPrice, formatPercent } from '../services/api';
+import { apiClient, formatPrice, formatPercent } from '../services/api';
 
 const Forecast = () => {
     const { symbol } = useParams();
@@ -20,7 +20,7 @@ const Forecast = () => {
     const fetchForecast = async () => {
         try {
             setLoading(true);
-            const response = await api.get(`/api/forecast/${symbol}`, {
+            const response = await apiClient.get(`/forecast/${symbol}`, {
                 params: { days: forecastDays }
             });
             setData(response.data);
@@ -98,8 +98,8 @@ const Forecast = () => {
                             key={days}
                             onClick={() => setForecastDays(days)}
                             className={`px-3 py-2 rounded-lg text-sm transition-colors ${forecastDays === days
-                                    ? 'bg-accent-primary text-white'
-                                    : 'bg-dark-card border border-dark-border text-gray-400 hover:text-white'
+                                ? 'bg-accent-primary text-white'
+                                : 'bg-dark-card border border-dark-border text-gray-400 hover:text-white'
                                 }`}
                         >
                             {days}D
@@ -340,7 +340,7 @@ const Forecast = () => {
                         <div>
                             <div className="text-gray-400 text-sm">Regime</div>
                             <div className={`text-xl font-semibold ${volatility.volatility_regime === 'High' ? 'text-red-400' :
-                                    volatility.volatility_regime === 'Low' ? 'text-emerald-400' : 'text-amber-400'
+                                volatility.volatility_regime === 'Low' ? 'text-emerald-400' : 'text-amber-400'
                                 }`}>
                                 {volatility.volatility_regime}
                             </div>

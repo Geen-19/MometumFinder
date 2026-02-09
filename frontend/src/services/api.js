@@ -130,3 +130,12 @@ export const getScoreColor = (score) => {
     if (score >= 40) return 'from-warning-600 to-warning-500'
     return 'from-danger-500 to-danger-400'
 }
+
+export const formatPrice = (num) => {
+    if (num === null || num === undefined) return '-'
+    return `₹${Number(num).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+// Export the raw axios instance for direct calls
+export const apiClient = api
+
