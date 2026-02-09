@@ -1,0 +1,14 @@
+# Jekyll configuration for GitHub Pages
+exclude:
+  - frontend/node_modules
+  - backend
+  - .venv
+  - "*.py"
+  - "*.pyc"
+  - __pycache__
+  - requirements.txt
+  - data
+  - "*.json"
+  - "*.lock"
+  - package.json
+  - package-lock.json
