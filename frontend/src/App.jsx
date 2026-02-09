@@ -4,6 +4,8 @@ import Dashboard from './components/Dashboard'
 import Screener from './components/Screener'
 import StockDetail from './components/StockDetail'
 import Signals from './components/Signals'
+import Gems from './components/Gems'
+import Forecast from './components/Forecast'
 
 function App() {
     const [currentTime, setCurrentTime] = useState(new Date())
@@ -17,6 +19,7 @@ function App() {
         { path: '/', label: 'Dashboard', icon: '📊' },
         { path: '/screener', label: 'Screener', icon: '🔍' },
         { path: '/signals', label: 'Signals', icon: '📡' },
+        { path: '/gems', label: 'Gems', icon: '💎' },
     ]
 
     return (
@@ -67,8 +70,8 @@ function App() {
                                     </p>
                                 </div>
                                 <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${isMarketOpen(currentTime)
-                                        ? 'bg-success-500/20 text-success-400'
-                                        : 'bg-dark-700 text-dark-400'
+                                    ? 'bg-success-500/20 text-success-400'
+                                    : 'bg-dark-700 text-dark-400'
                                     }`}>
                                     <span className={`w-2 h-2 rounded-full ${isMarketOpen(currentTime) ? 'bg-success-400 animate-pulse' : 'bg-dark-500'}`}></span>
                                     {isMarketOpen(currentTime) ? 'Market Open' : 'Market Closed'}
@@ -84,7 +87,9 @@ function App() {
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/screener" element={<Screener />} />
                         <Route path="/signals" element={<Signals />} />
+                        <Route path="/gems" element={<Gems />} />
                         <Route path="/stock/:symbol" element={<StockDetail />} />
+                        <Route path="/forecast/:symbol" element={<Forecast />} />
                     </Routes>
                 </main>
 

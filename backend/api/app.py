@@ -24,6 +24,8 @@ from analysis.signals import (
     generate_signals, get_signal_summary, get_top_signals,
     analyze_sector_signals, get_market_breadth, SignalType
 )
+from analysis.forecast import calculate_monte_carlo_forecast, get_volatility_analysis
+from analysis.gems import identify_gems, get_gem_summary, get_sector_gems
 
 
 app = Flask(__name__)
@@ -425,6 +427,104 @@ def get_market_overview():
                 for s in top_sectors
             ],
             'stock_count': len(stocks) if stocks else 0
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/forecast/<symbol>', methods=['GET'])
+def get_forecast(symbol):
+    """
+    Get Monte Carlo price forecast for a stock.
+    
+    Query params:
+    - days: Number of days to forecast (default: 20, max: 60)
+    - simulations: Number of simulations (default: 1000)
+    """
+    try:
+        if not symbol.endswith('.NS'):
+            symbol = f"{symbol}.NS"
+        
+        days = min(request.args.get('days', 20, type=int), 60)
+        simulations = min(request.args.get('simulations', 1000, type=int), 5000)
+        
+        # Get price history
+        prices = get_stock_prices(symbol, days=90)
+        
+        if not prices:
+            return jsonify({'error': f'No price data for {symbol}'}), 404
+        
+        # Run Monte Carlo forecast
+        forecast = calculate_monte_carlo_forecast(
+            prices, 
+            days_forward=days,
+            num_simulations=simulations
+        )
+        
+        # Get volatility analysis
+        volatility = get_volatility_analysis(prices)
+        
+        # Get stock info
+        stocks = get_all_stocks()
+        stock_info = next((s for s in stocks if s['symbol'] == symbol), {})
+        
+        return jsonify({
+            'symbol': symbol,
+            'name': stock_info.get('name', symbol.replace('.NS', '')),
+            'sector': stock_info.get('sector', get_stock_sector(symbol)),
+            'forecast': forecast,
+            'volatility': volatility
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/gems', methods=['GET'])
+def get_gems_endpoint():
+    """
+    Get gem stocks - oversold with good fundamentals.
+    
+    Query params:
+    - limit: Number of gems to return (default: 20)
+    - risk: Filter by risk level (low, medium, high)
+    - sector: Filter by sector
+    """
+    try:
+        limit = request.args.get('limit', 20, type=int)
+        risk_filter = request.args.get('risk', None)
+        sector_filter = request.args.get('sector', None)
+        
+        # Get latest indicators for all stocks
+        stocks = get_latest_indicators(limit=500)
+        
+        if not stocks:
+            return jsonify({
+                'date': datetime.now().strftime('%Y-%m-%d'),
+                'summary': {},
+                'gems': []
+            })
+        
+        # Identify gems
+        gems = identify_gems(stocks)
+        
+        # Apply filters
+        if risk_filter:
+            gems = [g for g in gems if g.get('risk_level', '').lower() == risk_filter.lower()]
+        
+        if sector_filter:
+            gems = [g for g in gems if g.get('sector', '').lower() == sector_filter.lower()]
+        
+        # Get summary
+        summary = get_gem_summary(gems)
+        sector_breakdown = get_sector_gems(gems)
+        
+        return jsonify({
+            'date': datetime.now().strftime('%Y-%m-%d'),
+            'summary': summary,
+            'sector_breakdown': {k: len(v) for k, v in sector_breakdown.items()},
+            'gems': gems[:limit]
         })
         
     except Exception as e:
