@@ -6,16 +6,17 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from datetime import datetime
 import pandas as pd
+import os
 import sys
 from pathlib import Path
 
 # Add parent to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from config import API_HOST, API_PORT, API_DEBUG
+from config import API_HOST, API_PORT, API_DEBUG, DB_PATH
 from data.database import (
     get_all_stocks, get_latest_indicators, get_stock_indicators,
     get_stock_prices, get_latest_signals, get_nifty_data,
-    get_sectors_performance, get_connection
+    get_sectors_performance, get_connection, init_db
 )
 from data.stock_list import NIFTY_STOCKS, get_stock_sector
 from analysis.indicators import calculate_all_indicators, get_latest_indicators as get_indicator_dict
@@ -30,6 +31,9 @@ from analysis.gems import identify_gems, get_gem_summary, get_sector_gems
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend
+
+# Auto-initialize DB on startup
+init_db()
 
 
 @app.route('/api/health', methods=['GET'])
@@ -531,10 +535,72 @@ def get_gems_endpoint():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/cron/update', methods=['GET'])
+def cron_update():
+    """
+    Cron endpoint for Vercel - triggers daily data update.
+    Protected by CRON_SECRET env var on Vercel.
+    """
+    # Verify cron secret on Vercel
+    if os.getenv("VERCEL") == "1":
+        auth = request.headers.get("Authorization")
+        cron_secret = os.getenv("CRON_SECRET")
+        if cron_secret and auth != f"Bearer {cron_secret}":
+            return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        from scheduler.jobs import daily_update_job
+        daily_update_job()
+        return jsonify({
+            "status": "success",
+            "timestamp": datetime.now().isoformat(),
+            "message": "Daily update completed"
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "timestamp": datetime.now().isoformat(),
+            "error": str(e)
+        }), 500
+
+
+@app.route('/api/cron/fetch', methods=['GET'])
+def cron_fetch():
+    """
+    Cron endpoint for initial data fetch.
+    Use this to populate the database for the first time.
+    """
+    if os.getenv("VERCEL") == "1":
+        auth = request.headers.get("Authorization")
+        cron_secret = os.getenv("CRON_SECRET")
+        if cron_secret and auth != f"Bearer {cron_secret}":
+            return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        from data.fetcher import fetch_all_stocks
+        result = fetch_all_stocks()
+
+        # Also run indicator calculation
+        from scheduler.jobs import daily_update_job
+        daily_update_job()
+
+        return jsonify({
+            "status": "success",
+            "timestamp": datetime.now().isoformat(),
+            "result": result
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "timestamp": datetime.now().isoformat(),
+            "error": str(e)
+        }), 500
+
+
 if __name__ == '__main__':
     print(f"\n{'='*50}")
     print("Stock Analysis Platform API")
     print(f"Running on http://{API_HOST}:{API_PORT}")
     print(f"{'='*50}\n")
-    
+
     app.run(host=API_HOST, port=API_PORT, debug=API_DEBUG)

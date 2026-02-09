@@ -2,10 +2,7 @@
 Scheduler Module
 Handles automated daily data updates and analysis.
 """
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.triggers.cron import CronTrigger
 from datetime import datetime
-import pytz
 import sys
 from pathlib import Path
 
@@ -16,6 +13,8 @@ from config import MARKET_CLOSE_HOUR, MARKET_CLOSE_MINUTE, TIMEZONE
 
 def get_scheduler():
     """Get configured scheduler instance."""
+    from apscheduler.schedulers.background import BackgroundScheduler
+    import pytz
     return BackgroundScheduler(timezone=pytz.timezone(TIMEZONE))
 
 
@@ -121,9 +120,12 @@ def setup_scheduler(scheduler: BackgroundScheduler = None) -> BackgroundSchedule
     - Daily at 3:45 PM IST (after market close)
     - Only on weekdays (Monday-Friday)
     """
+    from apscheduler.triggers.cron import CronTrigger
+    import pytz
+
     if scheduler is None:
         scheduler = get_scheduler()
-    
+
     # Daily job at market close
     scheduler.add_job(
         func=daily_update_job,

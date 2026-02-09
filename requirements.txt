@@ -1,5 +1,4 @@
 # Python dependencies for Vercel serverless functions
-# Mirrors backend/requirements.txt
 
 # Data fetching
 yfinance>=0.2.36
@@ -7,14 +6,12 @@ yfinance>=0.2.36
 # Data analysis
 pandas>=2.0.0
 numpy>=1.24.0
-pandas-ta-classic>=0.3.59
 
 # Web API
 flask>=3.0.0
 flask-cors>=4.0.0
 
-# Scheduler (not used in serverless but needed for imports)
-APScheduler>=3.10.0
+# Timezone
 pytz>=2024.1
 
 # Utilities

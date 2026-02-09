@@ -8,8 +8,12 @@ from pathlib import Path
 BASE_DIR = Path(__file__).parent.parent
 DATA_DIR = BASE_DIR / "data"
 
-# Database
-DB_PATH = Path(os.getenv("DB_PATH", str(DATA_DIR / "stock_analyzer.db")))
+# Database - use /tmp on Vercel (only writable directory in serverless)
+IS_VERCEL = os.getenv("VERCEL", "") == "1"
+if IS_VERCEL:
+    DB_PATH = Path("/tmp/stock_analyzer.db")
+else:
+    DB_PATH = Path(os.getenv("DB_PATH", str(DATA_DIR / "stock_analyzer.db")))
 
 # Ensure data directory exists
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
